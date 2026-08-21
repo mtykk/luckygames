@@ -1,0 +1,27 @@
+name: LuckyGames
+version: 0.0.1
+main: io.github.mtykk.luckygames.LuckyGames
+description: A lucky games plugin
+auther: mtykk
+api-version: '26.1.2'
+softdepend:
+    [QualityArmory]
+libraries:
+    - com.jeff-media:custom-block-data:2.2.8
+    - commons-io:commons-io:2.22.0
+permissions:
+    luckygames.luckyblock:
+        description: "OP operations for luckyblock"
+        default: op
+        children:
+            luckygames.luckyblock.place: true
+            luckygames.luckyblock.useall: true
+    luckygames.luckyblock.use:
+        description: "Whether a player could open a lucky block"
+        default: notop
+    luckygames.change_game_settings:
+        description: "Whether a player could change game settings"
+        default: op
+    luckygames.control_game:
+        description: "Whether a player could control the game state"
+        default: op

@@ -1,0 +1,55 @@
+luckygames:
+    # The section below defines the game settings
+    items-per-section: 10
+    section-count: 5
+    keep-inventory: true
+    saturation: true
+    night-vision: false
+    luckyblock-distribution:
+        unlucky: 12
+        normal: 70
+        lucky: 13
+        challenge: 5
+
+luckyblock:
+    # The section below defines the lucky event distribution for each type of lucky block (The sum of the weights doesn't have to be 100)
+    unlucky-block:
+        unlucky: 65
+        normal: 20
+        lucky: 5
+        challenge: 10
+    normal-block:
+        unlucky: 25
+        normal: 50
+        lucky: 20
+        challenge: 5
+    lucky-block:
+        unlucky: 10
+        normal: 20
+        lucky: 70
+        challenge: 0
+    challenge-block:
+        unlucky: 0
+        normal: 0
+        lucky: 0
+        challenge: 100
+
+lobby:
+    # The section below describes the coordinates of various objects in the lobby
+    spawn:
+        x: 27
+        y: 65
+        z: -22
+        yaw: 90
+    intro-display:
+        x: 16.5
+        y: 66
+        z: -24.5
+    guide-display:
+        x: 17.5
+        y: 66
+        z: -30.5
+    rule-display:
+        x: 25.5
+        y: 66
+        z: -32.5
