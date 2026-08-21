@@ -35,6 +35,12 @@ public class PluginScoreboards implements Listener {
         Bukkit.getScheduler().runTaskTimer(plugin,task->{
             for(Map.Entry<UUID,FastBoard> board: boards.entrySet()){
                 updateBoard(board);
+                Player player = Bukkit.getPlayer(board.getKey());
+                if(player != null){
+                    int playerTeam = GamePlayer.getPlayerTeam(player);
+                    if(playerTeam >= 0) player.playerListName(Component.text("[",NamedTextColor.YELLOW).append(Component.text(playerTeam,NamedTextColor.AQUA)).append(Component.text("] ",NamedTextColor.YELLOW)).append(Component.text(player.getName(),NamedTextColor.AQUA)));
+                    else player.playerListName(Component.text(player.getName(),NamedTextColor.GRAY));
+                }
             }
         },0,20);
     }

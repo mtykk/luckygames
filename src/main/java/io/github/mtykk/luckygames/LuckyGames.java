@@ -26,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.*;
 import org.bukkit.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,7 @@ public class LuckyGames extends JavaPlugin implements Listener{
         worldGame = new WorldGame(this,blockProtector,luckyBlock,gameStructures,gameSettings.getLuckyBlockDistribution());
         pluginScoreboards = new PluginScoreboards(this,gameState,luckyBlock.getLuckyEvents().getPlayerOngoingChallenges());
         registerCommands();
+        showHealthInTab();
 
         Bukkit.getScheduler().runTaskTimer(this, new Consumer<BukkitTask>() {
             int gameFinishTimer = 0;
@@ -268,6 +270,18 @@ public class LuckyGames extends JavaPlugin implements Listener{
 
     public GameSettings getGameSettings() {
         return gameSettings;
+    }
+
+    private void showHealthInTab(){
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        Scoreboard mainBoard = manager.getMainScoreboard();
+        String objective = "health";
+        if(mainBoard.getObjective(objective) != null) return;
+        Objective healthObjective = mainBoard.registerNewObjective(objective,
+                Criteria.HEALTH,
+                Component.empty(),
+                RenderType.HEARTS);
+        healthObjective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
     }
 
     private void onEpilogue(){
