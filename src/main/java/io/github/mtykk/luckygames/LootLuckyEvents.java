@@ -185,6 +185,8 @@ class NormalLootLuckyEvents extends LootLuckyEvents{
         registerSimpleItemLoot(Material.WAXED_OXIDIZED_CUT_COPPER_STAIRS,1,8);
 
         registerSimpleItemLoot(Material.IRON_INGOT,8,24);
+        registerSimpleItemLoot(Material.IRON_BLOCK,2,4);
+        registerSimpleItemLoot(Material.IRON_NUGGET);
         registerSimpleItemLoot(Material.IRON_HELMET);
         registerSimpleItemLoot(Material.IRON_CHESTPLATE);
         registerSimpleItemLoot(Material.IRON_LEGGINGS);
@@ -231,6 +233,8 @@ class NormalLootLuckyEvents extends LootLuckyEvents{
         registerSimpleItemLoot(Material.BONE,4,7);
         registerSimpleItemLoot(Material.COAL,8,20);
         registerSimpleItemLoot(Material.REDSTONE_BLOCK,4,16);
+        registerSimpleItemLoot(Material.REDSTONE_ORE,4,16);
+        registerSimpleItemLoot(Material.REDSTONE,32,48);
         registerSimpleItemLoot(Material.PIGLIN_HEAD,1);
         registerSimpleItemLoot(Material.DRAGON_HEAD,1);
         registerSimpleItemLoot(Material.STRING,4,16);
@@ -238,6 +242,8 @@ class NormalLootLuckyEvents extends LootLuckyEvents{
         registerSimpleItemLoot(Material.HONEY_BLOCK,1,4);
         registerSimpleItemLoot(Material.DECORATED_POT,1);
         registerSimpleItemLoot(Material.NAUTILUS_SPAWN_EGG,1);
+        registerSimpleItemLoot(Material.GUNPOWDER,32,48);
+        registerSimpleItemLoot(Material.BLAZE_ROD,4,7);
 
         //Potions
         registerSimplePotionLoot(Material.SPLASH_POTION,PotionEffectType.SLOW_FALLING,300,0,false,true,true,1,1);
