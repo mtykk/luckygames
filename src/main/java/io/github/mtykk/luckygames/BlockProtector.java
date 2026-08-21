@@ -121,4 +121,9 @@ public class BlockProtector implements Listener {
     public void onBlockBurn(BlockBurnEvent e){
         if(isProtected(e.getBlock())) e.setCancelled(true);
     }
+
+    @EventHandler(priority = EventPriority.HIGH,ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent e){
+        if(isProtected(e.getBlockPlaced())) e.setCancelled(true);
+    }
 }

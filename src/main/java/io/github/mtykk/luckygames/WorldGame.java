@@ -117,6 +117,8 @@ public class WorldGame {
                         Location loc = new Location(gameWorld,currentX,currentY,currentZ);
                         gameStructures.getStart().place(loc,true,block -> {
                             block.setType(Material.AIR);
+                            protector.protect(block);
+                            protector.protect(block.getLocation().clone().add(0,1,0));
                         });
                         locationRecorder.addLocation(currentLane,loc);
                         currentX += gameStructures.getStart().getSizeXP() + 3;// Also hardcoded buffer
@@ -125,6 +127,7 @@ public class WorldGame {
                         Location loc = new Location(gameWorld,currentX,currentY,currentZ);
                         gameStructures.getCheckpoint().place(loc,true,block -> {
                             protector.protect(block);
+                            protector.protect(block.getLocation().clone().add(0,1,0));
                             block.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
                             PersistentDataContainer pdc = new CustomBlockData(block,plugin);
                             pdc.set(GameIndexDataKey.MARKER_LANE_ATTRIBUTION, PersistentDataType.INTEGER,currentLane);
