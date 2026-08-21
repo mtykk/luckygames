@@ -12,17 +12,16 @@ public class GunCustomLuckyEvents extends LootLuckyEvents{
         ReusableParticleBuilders.GREEN_EFFECT_SPREAD_PARTICLE_BUILDER.count(64).location(blockLocation).spawn();
     }
 
-    protected void registerQaItem(String itemName){
-        ItemStack item = QualityArmory.getCustomItemAsItemStack(itemName);
-        registerItemLoot(new ItemLoot(item,1,1));
+    protected void registerQaItem(String itemName) throws IllegalArgumentException{
+        registerQaItem(itemName,1);
     }
-    protected void registerQaItem(String itemName,int minAmount,int maxAmount){
+    protected void registerQaItem(String itemName,int minAmount,int maxAmount) throws IllegalArgumentException{
         ItemStack item = QualityArmory.getCustomItemAsItemStack(itemName);
+        if(item == null) throw new IllegalArgumentException("No such item");
         registerItemLoot(new ItemLoot(item,minAmount,maxAmount));
     }
-    protected void registerQaItem(String itemName,int amount){
-        ItemStack item = QualityArmory.getCustomItemAsItemStack(itemName);
-        registerItemLoot(new ItemLoot(item,amount,amount));
+    protected void registerQaItem(String itemName,int amount) throws IllegalArgumentException{
+        registerQaItem(itemName,amount,amount);
     }
 }
 
@@ -73,9 +72,9 @@ class WeaponCustomLuckyEvents extends GunCustomLuckyEvents{
         registerQaItem("ammobag");
 
         registerQaItem("ncrhelmet");
-        registerQaItem("ushaka");
+        registerQaItem("ushanka");
         registerQaItem("skimask");
-        registerQaItem("assulthelmet");
+        registerQaItem("assaulthelmet");
 
         registerQaItem("LightSaberWhite");
     }
