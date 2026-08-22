@@ -68,19 +68,16 @@ public class WorldGame {
     public void reset(GameSettings gameSettings,int lanes,IndexedGameLocation locationRecorder,Consumer<World> onResetFinish) throws IllegalStateException{
         World overworld = Bukkit.getWorld(NamespacedKey.minecraft("overworld"));
         if(overworld == null) throw new IllegalStateException("Overworld not found, though normally not needed.");
-        {
-            World world = Bukkit.getWorld(worldKey);
-            if (world != null) {
-                //World exists
-                world.getPlayers().forEach(player -> {
-                    player.sendMessage(Component.translatable("luckygames.warning.resetting_your_world"));
-                    World lobby = Bukkit.getWorld(new NamespacedKey(plugin,"lobby"));
-                    if(lobby != null) player.teleport(lobby.getSpawnLocation());
-                    else player.teleport(overworld.getSpawnLocation());
-                });
-                Bukkit.unloadWorld(world,false);
-                return;
-            }
+        World world = Bukkit.getWorld(worldKey);
+        if (world != null) {
+            //World exists
+            world.getPlayers().forEach(player -> {
+                player.sendMessage(Component.translatable("luckygames.warning.resetting_your_world"));
+                World lobby = Bukkit.getWorld(new NamespacedKey(plugin,"lobby"));
+                if(lobby != null) player.teleport(lobby.getSpawnLocation());
+                else player.teleport(overworld.getSpawnLocation());
+            });
+            Bukkit.unloadWorld(world,false);
         }
         put(gameSettings,lanes,locationRecorder,onResetFinish);
     }
@@ -93,10 +90,10 @@ public class WorldGame {
         World gameWorld = Bukkit.getWorld(worldKey);
 
         Bukkit.getScheduler().runTaskTimer(plugin, new Consumer<BukkitTask>() {
-            static int currentLane = 0;
-            static int currentIndex = 0;
-            static int currentX = 0;
-            static int currentZ = 0;
+            int currentLane = 0;
+            int currentIndex = 0;
+            int currentX = 0;
+            int currentZ = 0;
             final int currentY = 70;
             @Override
             public void accept(BukkitTask task) {

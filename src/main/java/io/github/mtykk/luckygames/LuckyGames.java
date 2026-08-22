@@ -169,6 +169,7 @@ public class LuckyGames extends JavaPlugin implements Listener{
                     Bukkit.getScheduler().runTaskLater(this,task->{
                         operatablePlayer.showTitle(Title.title(Component.text("GO",NamedTextColor.GOLD,TextDecoration.BOLD),Component.empty()));
                         operatablePlayer.sendMessage(Component.translatable("luckygames.message.hint"));
+                        operatablePlayer.sendMessage(Component.empty());
                     },10);
                 } catch (IllegalArgumentException e) {
                     worldGame.sendHereAsSpectator(player,true);
