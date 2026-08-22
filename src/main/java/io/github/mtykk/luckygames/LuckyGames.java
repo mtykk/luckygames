@@ -243,6 +243,21 @@ public class LuckyGames extends JavaPlugin implements Listener{
                 });
     }
 
+    private LiteralArgumentBuilder<CommandSourceStack> matchCommand(){
+        return Commands.literal("match")
+                .requires(sender -> sender.getSender().hasPermission("luckygames.control_game"))
+                .executes(ctx->{
+                    CommandSender sender = ctx.getSource().getSender();
+                    if(gameState.getPhase() != GamePhase.RUNNING){
+                        sender.sendMessage(Component.translatable("luckygames.warning.could_not_run_the_match"));
+                    }else{
+                        onEpilogue();
+                        sender.sendMessage(Component.translatable("luckygames.message.success"));
+                    }
+                    return Command.SINGLE_SUCCESS;
+                });
+    }
+
     private void wrapUpGame(){
         gameState.setPhase(GamePhase.WAITING);
         Bukkit.getOnlinePlayers().forEach(player -> {
@@ -260,6 +275,7 @@ public class LuckyGames extends JavaPlugin implements Listener{
                     .then(gameSettings.settingsCommand())
                     .then(lobbyCommand())
                     .then(challengeCommand())
+                    .then(matchCommand())
                     .build());
         });
     }

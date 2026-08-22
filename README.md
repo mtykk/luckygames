@@ -1,4 +1,4 @@
-## <center>Lucky Games</center>
+# <p align="center">Lucky Games</p>
 
 A mini minecraft luckygames plugin for Paper.  
 Test your luck on randomly generated tracks, open lucky blocks, experience a diverse set of events, and have fun with your friends.
@@ -32,7 +32,7 @@ See [Development](#development)
 ---
 ### <a id="configuration"></a> Configuration
 
-See (config.yml)[src/main/resources/config.yml]  
+See [config.yml](src/main/resources/config.yml)  
 The luckyblock-distribution section defines the generation possibility for each type of luckyblock on track generation.  
 The luckyblock section defines the possibility of the type of event triggered when a lucky block is opened.  
 The weights don't need to sum up to 100.
@@ -44,8 +44,8 @@ The weights don't need to sum up to 100.
 - `/luckygames run` to run the game. (Requires permission `luckygames.control_game`)
 - `/luckygames set [entry] [value]` to config the settings in-game. (Requires permission `luckygames.change_game_settings`)
 - `/luckygames lobby [force]` to return to lobby. (Without `force`: Sends the executor to the lobby when the game is finished; With `force`: sends everyone to the lobby and forcefully ends the game, requires permission `luckygames.control_game`)
+- `/luckygames match` to forcefully run the final match. (Requires permission `luckygames.control_game`)
 - `/luckyblock place [location] [type] [attribution]` to place a lucky block at the specified location. (Requires permission `luckygames.luckyblock.place`)
-
 ---
 ### <a id="development"></a> Development
 

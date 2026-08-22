@@ -62,7 +62,9 @@ public class PluginScoreboards implements Listener {
                 Component.translatable("luckygames.message.in_progress").append(Component.translatable(gamePhaseTranslationKey)),
                 Component.empty(),
                 Component.translatable("luckygames.message.players_left").append(Component.text(gameState.getAllPlayerTeamAttribution().size(),NamedTextColor.AQUA)),
+                Component.empty(),
                 Component.translatable("luckygames.message.active_challenges").append(Component.text(playerOngoingChallenges.count(),NamedTextColor.AQUA)),
+                Component.empty(),
                 GamePlayer.getPlayerTeam(playerUUID) >= 0 ? Component.translatable("luckygames.message.your_team").append(Component.text(GamePlayer.getPlayerTeam(playerUUID),NamedTextColor.AQUA)) : Component.empty()
         );
     }
