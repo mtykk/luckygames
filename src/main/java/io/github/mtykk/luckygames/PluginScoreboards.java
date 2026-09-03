@@ -2,6 +2,7 @@ package io.github.mtykk.luckygames;
 
 import fr.mrmicky.fastboard.adventure.FastBoard;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
@@ -13,10 +14,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PluginScoreboards implements Listener {
     private final Map<UUID,FastBoard> boards = new HashMap<>();
@@ -35,6 +33,7 @@ public class PluginScoreboards implements Listener {
         Bukkit.getScheduler().runTaskTimer(plugin,task->{
             for(Map.Entry<UUID,FastBoard> board: boards.entrySet()){
                 updateBoard(board);
+                updateTab(board.getKey());
                 Player player = Bukkit.getPlayer(board.getKey());
                 if(player != null){
                     int playerTeam = GamePlayer.getPlayerTeam(player);
@@ -56,17 +55,38 @@ public class PluginScoreboards implements Listener {
             case EPILOGUE -> "luckygames.message.epilogue";
             case FINISHED -> "luckygames.message.finished";
         };
-        board.updateLines(
-                Component.text(dateFormat.format(now),NamedTextColor.GRAY, TextDecoration.BOLD),
-                Component.empty(),
-                Component.translatable("luckygames.message.in_progress").append(Component.translatable(gamePhaseTranslationKey)),
-                Component.empty(),
-                Component.translatable("luckygames.message.players_left").append(Component.text(gameState.getAllPlayerTeamAttribution().size(),NamedTextColor.AQUA)),
-                Component.empty(),
-                Component.translatable("luckygames.message.active_challenges").append(Component.text(playerOngoingChallenges.count(),NamedTextColor.AQUA)),
-                Component.empty(),
-                GamePlayer.getPlayerTeam(playerUUID) >= 0 ? Component.translatable("luckygames.message.your_team").append(Component.text(GamePlayer.getPlayerTeam(playerUUID),NamedTextColor.AQUA)) : Component.empty()
-        );
+        List<Component> boardContent = new ArrayList<>();
+        boardContent.add(Component.text(dateFormat.format(now),NamedTextColor.GRAY, TextDecoration.BOLD));
+        boardContent.add(Component.empty());
+        boardContent.add(Component.translatable("luckygames.message.in_progress").append(Component.translatable(gamePhaseTranslationKey)));
+        boardContent.add(Component.empty());
+        boardContent.add(Component.translatable("luckygames.message.players_left").append(Component.text(gameState.getAllPlayerTeamAttribution().size(),NamedTextColor.AQUA)));
+        boardContent.add(Component.empty());
+        boardContent.add(Component.translatable("luckygames.message.active_challenges").append(Component.text(playerOngoingChallenges.count(),NamedTextColor.AQUA)).append(playerOngoingChallenges.hasOngoingChallenge(playerUUID) ? Component.space().append(Component.translatable("luckygames.message.you_are_in")) : Component.empty()));
+        if(GamePlayer.getPlayerTeam(playerUUID) >= 0){
+            boardContent.add(Component.empty());
+            boardContent.add(Component.translatable("luckygames.message.your_team").append(Component.text(GamePlayer.getPlayerTeam(playerUUID),NamedTextColor.AQUA)));
+        }
+        board.updateLines(boardContent);
+    }
+
+    private void updateTab(UUID playerUUID){
+        Player player = Bukkit.getPlayer(playerUUID);
+        if(player == null) return;
+
+        TextComponent.Builder footer = Component.text();
+        if(playerOngoingChallenges.count() > 0){
+            footer.appendNewline();
+            footer.append(Component.translatable("luckygames.message.active_challenges").append(Component.newline()));
+            for(Map.Entry<UUID,PlayerChallengeDesc> entry: playerOngoingChallenges.getOngoingChallenges().entrySet()){
+                footer.append(Component.text("[",NamedTextColor.YELLOW).append(Component.text(Objects.requireNonNullElse(Bukkit.getOfflinePlayer(entry.getKey()).getName(),"E"),NamedTextColor.AQUA)).append(Component.text("]",NamedTextColor.YELLOW)));
+                footer.append(Component.space());
+                footer.append(entry.getValue().getBasicChallenge(entry.getKey() == playerUUID));
+                footer.appendNewline();
+            }
+        }
+
+        player.sendPlayerListFooter(footer.build());
     }
 
     @EventHandler

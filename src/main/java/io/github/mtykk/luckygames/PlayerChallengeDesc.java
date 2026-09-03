@@ -138,4 +138,9 @@ public class PlayerChallengeDesc {
         return hideGold ? Component.text().append(modal).append(Component.text(" ")).append(Component.text("not this time", NamedTextColor.GOLD, TextDecoration.OBFUSCATED)).append(Component.text(" ")).append(Component.translatable("luckyblock.message.challenge_duration", Argument.component("challenge_duration",Component.text(ticksLeft/20 +"s",NamedTextColor.AQUA)))).build() :
                 Component.text().append(modal).append(Component.text(" ")).append(gold).append(Component.text(" ")).append(Component.translatable("luckyblock.message.challenge_duration", Argument.component("challenge_duration",Component.text(ticksLeft/20 +"s",NamedTextColor.AQUA)))).build();
     }
+
+    public Component getBasicChallenge(boolean hideGold){
+        return hideGold ? Component.text().append(modal).append(Component.text(" ")).append(Component.text("not this time", NamedTextColor.GOLD, TextDecoration.OBFUSCATED)).build() :
+                Component.text().append(modal).append(Component.text(" ")).append(gold).build();
+    }
 }
