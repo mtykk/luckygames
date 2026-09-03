@@ -101,6 +101,7 @@ public class GameState implements Listener{
         gameState.respawnLocationIndex = index;
         Player player = Bukkit.getPlayer(playerUUID);
         Location targetLocation = indexedGameLocation.getLocation(playerTeam,index);
+        targetLocation.setYaw(-90);
         if(player != null){
             player.setRespawnLocation(targetLocation,true);
             if(teleport) player.teleport(targetLocation);
