@@ -81,7 +81,7 @@ public class PluginScoreboards implements Listener {
             for(Map.Entry<UUID,PlayerChallengeDesc> entry: playerOngoingChallenges.getOngoingChallenges().entrySet()){
                 footer.append(Component.text("[",NamedTextColor.YELLOW).append(Component.text(Objects.requireNonNullElse(Bukkit.getOfflinePlayer(entry.getKey()).getName(),"E"),NamedTextColor.AQUA)).append(Component.text("]",NamedTextColor.YELLOW)));
                 footer.append(Component.space());
-                footer.append(entry.getValue().getBasicChallenge(entry.getKey() == playerUUID));
+                footer.append(entry.getValue().getBasicChallenge(entry.getKey().equals(playerUUID)));
                 footer.appendNewline();
             }
         }

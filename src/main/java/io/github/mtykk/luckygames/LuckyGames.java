@@ -224,23 +224,22 @@ public class LuckyGames extends JavaPlugin implements Listener{
                 .executes(ctx->{
                     CommandSender sender = ctx.getSource().getSender();
                     Entity executor = ctx.getSource().getExecutor();
-                    UUID executorUUID = executor.getUniqueId();
                     if(executor == null){
                         sender.sendMessage(Component.text("Can't process"));
                         return Command.SINGLE_SUCCESS;
-                    }else{
-                        if(luckyBlock.getLuckyEvents().getPlayerOngoingChallenges().getOngoingChallenges().isEmpty()){
-                            sender.sendMessage(Component.translatable("luckygames.message.nothing_to_show"));
-                        }else {
-                            for (Map.Entry<UUID, PlayerChallengeDesc> entry : luckyBlock.getLuckyEvents().getPlayerOngoingChallenges().getOngoingChallenges().entrySet()) {
-                                sender.sendMessage(Component.text("[", NamedTextColor.YELLOW)
-                                        .append(Component.text(Bukkit.getOfflinePlayer(entry.getKey()).getName(), NamedTextColor.AQUA))
-                                        .append(Component.text("] ", NamedTextColor.YELLOW))
-                                        .append(entry.getValue().getChallenge(entry.getKey().equals(executorUUID))));
-                            }
-                        }
-                        return Command.SINGLE_SUCCESS;
                     }
+                    UUID executorUUID = executor.getUniqueId();
+                    if(luckyBlock.getLuckyEvents().getPlayerOngoingChallenges().getOngoingChallenges().isEmpty()){
+                        sender.sendMessage(Component.translatable("luckygames.message.nothing_to_show"));
+                    }else {
+                        for (Map.Entry<UUID, PlayerChallengeDesc> entry : luckyBlock.getLuckyEvents().getPlayerOngoingChallenges().getOngoingChallenges().entrySet()) {
+                            sender.sendMessage(Component.text("[", NamedTextColor.YELLOW)
+                                    .append(Component.text(Objects.requireNonNullElse(Bukkit.getOfflinePlayer(entry.getKey()).getName(),"E"), NamedTextColor.AQUA))
+                                    .append(Component.text("] ", NamedTextColor.YELLOW))
+                                    .append(entry.getValue().getChallenge(entry.getKey().equals(executorUUID))));
+                        }
+                    }
+                    return Command.SINGLE_SUCCESS;
                 });
     }
 
