@@ -31,7 +31,7 @@ public class BetterNotChallengeLuckyEvents extends GenericLuckyEvents{
 
     protected final Consumer<UUID> onFail = uuid -> {
         Player player = Bukkit.getPlayer(uuid);
-        if(player.isConnected()){
+        if(player != null && player.isConnected()){
             World world = player.getWorld();
             ReusableParticleBuilders.DAMAGE_PARTICLE_BUILDER.location(player.getLocation()).spawn();
             world.spawn(player.getLocation(), LightningStrike.class, CreatureSpawnEvent.SpawnReason.CUSTOM, lightningStrike -> {
@@ -44,7 +44,7 @@ public class BetterNotChallengeLuckyEvents extends GenericLuckyEvents{
 
     protected final Consumer<UUID> onTimeout = uuid -> {
         Player player = Bukkit.getPlayer(uuid);
-        if(player.isConnected()){
+        if(player != null && player.isConnected()){
             LuckyGames.getInstance().getLuckyBlockInstance().getLuckyEvents().getLuckyEventsRegistry(2).get(0).run(player,player.getLocation().toBlockLocation());
         }
         playerOngoingChallengesInstance.getOngoingChallenges().get(uuid).broadcastChallengeEnd(ReusableChallengeOutcomeTypes.DONE);

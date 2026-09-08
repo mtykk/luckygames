@@ -2,6 +2,7 @@ package io.github.mtykk.luckygames;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.bossbar.BossBarViewer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -14,6 +15,7 @@ import org.bukkit.event.Listener;
 
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -89,6 +91,17 @@ public class PlayerChallengeDesc {
     }
     public void updateBossBar(){
         if(bossBar == null) return;
+        for(BossBarViewer viewer: bossBar.viewers()){
+            if(viewer instanceof Player player){
+                if(!player.isConnected()){
+                    Player target = Bukkit.getPlayer(playerUUID);
+                    if(target != null){
+                        target.showBossBar(bossBar);
+                        bossBar.removeViewer(player);
+                    }
+                }
+            }
+        }
         bossBar.name(generateRemainingTime());
         bossBar.progress(((float)ticksLeft/ticksTotal));
     }
@@ -113,6 +126,7 @@ public class PlayerChallengeDesc {
     }
     public void broadcastChallengeBegin(Component duration,boolean hideGoldToChallenger){
         Player player = Bukkit.getPlayer(playerUUID);
+        if(player == null) return;
         Component fullChallengeDescription = Component.text().append(modal).append(Component.text(" ")).append(gold).append(Component.text(" ")).append(Component.translatable("luckyblock.message.challenge_duration", Argument.component("challenge_duration",duration))).build();
         Component mysteryChallengeDescription = Component.text().append(modal).append(Component.text(" ")).append(Component.text("not this time", NamedTextColor.GOLD, TextDecoration.OBFUSCATED)).append(Component.text(" ")).append(Component.translatable("luckyblock.message.challenge_duration", Argument.component("challenge_duration", duration))).build();
 
@@ -129,9 +143,9 @@ public class PlayerChallengeDesc {
         Player player = Bukkit.getPlayer(playerUUID);
         Component fullChallengeDescription = Component.text().append(modal).append(Component.text(" ")).append(gold).build();
 
-        player.showTitle(Title.title(Component.translatable("luckyblock.message.challenge_finish_self",Argument.component("outcome",challengeOutcome)),fullChallengeDescription));
+        if(player != null) player.showTitle(Title.title(Component.translatable("luckyblock.message.challenge_finish_self",Argument.component("outcome",challengeOutcome)),fullChallengeDescription));
 
-        Bukkit.getServer().sendMessage(Component.translatable("luckyblock.message.challenge_finish_others",Argument.component("outcome",challengeOutcome),Argument.component("player",Component.text(player.getName())),Argument.component("challenge_description",fullChallengeDescription)));
+        Bukkit.getServer().sendMessage(Component.translatable("luckyblock.message.challenge_finish_others",Argument.component("outcome",challengeOutcome),Argument.component("player",Component.text(Objects.requireNonNullElse(Bukkit.getOfflinePlayer(playerUUID).getName(),"E"))),Argument.component("challenge_description",fullChallengeDescription)));
     }
 
     public Component getChallenge(boolean hideGold){

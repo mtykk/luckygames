@@ -29,9 +29,16 @@ public class PlayerOngoingChallenges {
                 if(player != null && player.isConnected()){
                     playerChallengeDesc.runPeriodicChecker();
                 }
-                playerChallengeDesc.updateBossBar();
             }
         },100,0);
+
+        Bukkit.getServer().getScheduler().runTaskTimer(LuckyGames.getInstance(),task->{
+            if (ongoingChallenges.isEmpty()) return;
+            for(Entry<UUID,PlayerChallengeDesc> i:ongoingChallenges.entrySet()) {
+                PlayerChallengeDesc playerChallengeDesc = i.getValue();
+                playerChallengeDesc.updateBossBar();
+            }
+        },100,20);
     }
 
     public Map<UUID, PlayerChallengeDesc> getOngoingChallenges() {
