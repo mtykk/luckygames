@@ -12,11 +12,11 @@ class PluginStructureLoader {
         StructureManager structureManager = plugin.getServer().getStructureManager();
         for(PluginStructures structureKey : PluginStructures.values()){
             try(InputStream structureResource = overridableResource.getResource("structures/"+structureKey.getStructureKey().getNamespace()+"/"+structureKey.getStructureKey().getKey()+".nbt")){
-                if (structureResource == null) throw new IOException();
+                if (structureResource == null) throw new IOException("Resource not found");
                 Structure structure = structureManager.loadStructure(structureResource);
                 structureManager.registerStructure(structureKey.getStructureKey(),structure);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException | RuntimeException e) {
+                throw new IllegalStateException("Failed to load bundled structure " + structureKey.getStructureKey(), e);
             }
         }
     }

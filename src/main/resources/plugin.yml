@@ -2,7 +2,7 @@ name: LuckyGames
 version: 0.0.1
 main: io.github.mtykk.luckygames.LuckyGames
 description: A lucky games plugin
-auther: mtykk
+author: mtykk
 api-version: '26.1.2'
 softdepend:
     [QualityArmory]

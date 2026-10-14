@@ -21,7 +21,9 @@ public class OverridableResource {
         if(file.exists()){
             try{
                 return new FileInputStream(file);
-            } catch (FileNotFoundException e) {}
+            } catch (FileNotFoundException e) {
+                plugin.getLogger().fine("Could not open resource override " + path + "; using the bundled resource");
+            }
         }
         return plugin.getResource(path);
     }

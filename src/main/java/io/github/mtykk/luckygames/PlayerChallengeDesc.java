@@ -2,7 +2,6 @@ package io.github.mtykk.luckygames;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.bossbar.BossBarViewer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -38,9 +37,15 @@ public class PlayerChallengeDesc {
     private final Consumer<UUID> onFail;
     @Nullable
     private BossBar bossBar = null;
+    @Nullable
+    private Player bossBarPlayer = null;
 
-    PlayerChallengeDesc(UUID _playerUUID,Component _modal,Component _gold,int _ticksLeft,@Nullable Consumer<UUID> _periodicChecker,@Nullable Listener _listenerChecker,@Nullable Consumer<UUID> _timeoutEvent,@Nullable Consumer<UUID> _onAccomplish,@Nullable Consumer<UUID> _onFail) throws IllegalArgumentException{
-        if(_listenerChecker == null && _periodicChecker == null) throw new IllegalArgumentException("No checker specified");
+    PlayerChallengeDesc(UUID _playerUUID, Component _modal, Component _gold, int _ticksLeft,
+                        @Nullable Consumer<UUID> _periodicChecker, @Nullable Listener _listenerChecker,
+                        @Nullable Consumer<UUID> _timeoutEvent, @Nullable Consumer<UUID> _onAccomplish,
+                        @Nullable Consumer<UUID> _onFail) throws IllegalArgumentException {
+        if (_listenerChecker == null && _periodicChecker == null) throw new IllegalArgumentException("No checker specified");
+        if (_ticksLeft <= 0) throw new IllegalArgumentException("Challenge duration must be positive");
         this.playerUUID = _playerUUID;
         this.modal = _modal;
         this.gold = _gold;
@@ -83,34 +88,39 @@ public class PlayerChallengeDesc {
     private Component generateRemainingTime(){
         return Component.translatable("luckyblock.message.time_remaining",Argument.component("time_remaining",Component.text(ticksLeft/20,NamedTextColor.AQUA).append(Component.text(" s",NamedTextColor.AQUA))));
     }
-    public void enableBossBar() throws IllegalStateException{
+    public void enableBossBar() throws IllegalStateException {
         Player player = Bukkit.getPlayer(playerUUID);
-        if(player == null) throw new IllegalStateException("The player does not exist");
-        bossBar = BossBar.bossBar(generateRemainingTime(),1.0f, BossBar.Color.YELLOW,BossBar.Overlay.PROGRESS);
+        if (player == null) throw new IllegalStateException("The player does not exist");
+        deleteBossBar();
+        bossBar = BossBar.bossBar(generateRemainingTime(), 1.0f, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
+        bossBarPlayer = player;
         player.showBossBar(bossBar);
     }
-    public void updateBossBar(){
-        if(bossBar == null) return;
-        for(BossBarViewer viewer: bossBar.viewers()){
-            if(viewer instanceof Player player){
-                if(!player.isConnected()){
-                    Player target = Bukkit.getPlayer(playerUUID);
-                    if(target != null){
-                        target.showBossBar(bossBar);
-                        bossBar.removeViewer(player);
-                    }
-                }
-            }
-        }
-        bossBar.name(generateRemainingTime());
-        bossBar.progress(((float)ticksLeft/ticksTotal));
-    }
-    public void deleteBossBar() throws IllegalStateException{
-        if(bossBar == null) return;
+
+    public void updateBossBar() {
+        if (bossBar == null) return;
+
         Player player = Bukkit.getPlayer(playerUUID);
-        if(player == null) throw new IllegalStateException("The player does not exist");
-        player.hideBossBar(bossBar);
+        if (bossBarPlayer != null && (player == null || !player.isConnected() || bossBarPlayer != player)) {
+            bossBar.removeViewer(bossBarPlayer);
+            bossBarPlayer = null;
+        }
+        if (player != null && player.isConnected() && bossBarPlayer == null) {
+            bossBarPlayer = player;
+            player.showBossBar(bossBar);
+        }
+
+        bossBar.name(generateRemainingTime());
+        bossBar.progress(Math.max(0.0f, Math.min(1.0f, (float) ticksLeft / ticksTotal)));
+    }
+
+    public void deleteBossBar() {
+        if (bossBar == null) return;
+        BossBar bar = bossBar;
         bossBar = null;
+        Player viewer = bossBarPlayer;
+        bossBarPlayer = null;
+        if (viewer != null) bar.removeViewer(viewer);
     }
 
     /**
@@ -119,10 +129,12 @@ public class PlayerChallengeDesc {
      * 1. Unregister the event listener (if any)
      * 2. Clear the boss bar (if any)
      */
-    public void gracefullyClean(){
-        deleteBossBar();
-        if(listenerChecker == null) return;
-        HandlerList.unregisterAll(listenerChecker);
+    public void gracefullyClean() {
+        try {
+            deleteBossBar();
+        } finally {
+            if (listenerChecker != null) HandlerList.unregisterAll(listenerChecker);
+        }
     }
     public void broadcastChallengeBegin(Component duration,boolean hideGoldToChallenger){
         Player player = Bukkit.getPlayer(playerUUID);

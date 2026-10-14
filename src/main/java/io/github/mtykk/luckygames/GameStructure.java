@@ -26,12 +26,17 @@ public class GameStructure {
      * @param structure The structure
      * @param protector The protector which can be used to protect the structure
      */
-    GameStructure(Structure structure,BlockProtector protector){
+    GameStructure(Structure structure, BlockProtector protector) {
+        if (structure == null) throw new IllegalArgumentException("Structure was not loaded");
         this.structure = structure;
         this.protector = protector;
         sizeX = structure.getSize().getBlockX();
-        Location markerLocation = structure.getPalettes().getFirst().getBlocks().stream().filter(blockState -> blockState.getType().equals(Material.SPONGE)).findFirst().get().getLocation();
-        offset = new Vector(-markerLocation.getBlockX(),-markerLocation.getBlockY(),-markerLocation.getBlockZ());
+        Location markerLocation = structure.getPalettes().getFirst().getBlocks().stream()
+                .filter(blockState -> blockState.getType() == Material.SPONGE)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Structure is missing its sponge placement marker"))
+                .getLocation();
+        offset = new Vector(-markerLocation.getBlockX(), -markerLocation.getBlockY(), -markerLocation.getBlockZ());
     }
 
     /**
@@ -102,15 +107,15 @@ public class GameStructure {
      * Get the distance of the marker to the border on positive X axis
      * @return The distance
      */
-    public int getSizeXP(){
-        return sizeX-offset.getBlockX()-1;
+    public int getSizeXP() {
+        return sizeX + offset.getBlockX() - 1;
     }
     /**
      * Get the distance of the marker to the border on negative X axis
      * @return The distance
      */
-    public int getSizeXN(){
-        return offset.getBlockX();
+    public int getSizeXN() {
+        return -offset.getBlockX();
     }
 
     public Vector getOffset() {

@@ -61,10 +61,20 @@ public class LuckyEvents {
         }
     }
 
-    private static void readEachTypeWeight(){
-        for(int i = 0;i <= 3;i++){
-            for(int j = 0;j <= 3;j++){
-                eventTypeWeightPerBlockType[i][j] = LuckyGames.getInstance().getConfig().getInt("luckyblock."+LuckyBlock.luckyBlockTypesString[i]+"."+LuckyBlock.luckyEventTypesString[j]);
+    private static void readEachTypeWeight() {
+        for (int i = 0; i < eventTypeWeightPerBlockType.length; i++) {
+            long totalWeight = 0;
+            for (int j = 0; j < eventTypeWeightPerBlockType[i].length; j++) {
+                String path = "luckyblock." + LuckyBlock.luckyBlockTypesString[i] + "." + LuckyBlock.luckyEventTypesString[j];
+                int weight = LuckyGames.getInstance().getConfig().getInt(path, 0);
+                if (weight < 0) {
+                    throw new IllegalArgumentException("Lucky event weights cannot be negative: " + path);
+                }
+                eventTypeWeightPerBlockType[i][j] = weight;
+                totalWeight += weight;
+            }
+            if (totalWeight == 0) {
+                throw new IllegalArgumentException("At least one lucky event weight must be positive for " + LuckyBlock.luckyBlockTypesString[i]);
             }
         }
     }

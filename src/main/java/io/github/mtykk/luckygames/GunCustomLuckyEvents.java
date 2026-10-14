@@ -12,16 +12,21 @@ public class GunCustomLuckyEvents extends LootLuckyEvents{
         ReusableParticleBuilders.GREEN_EFFECT_SPREAD_PARTICLE_BUILDER.count(64).location(blockLocation).spawn();
     }
 
-    protected void registerQaItem(String itemName) throws IllegalArgumentException{
-        registerQaItem(itemName,1);
+    protected void registerQaItem(String itemName) {
+        registerQaItem(itemName, 1);
     }
-    protected void registerQaItem(String itemName,int minAmount,int maxAmount) throws IllegalArgumentException{
+
+    protected void registerQaItem(String itemName, int minAmount, int maxAmount) {
         ItemStack item = QualityArmory.getCustomItemAsItemStack(itemName);
-        if(item == null) throw new IllegalArgumentException("No such item");
-        registerItemLoot(new ItemLoot(item,minAmount,maxAmount));
+        if (item == null) {
+            LuckyGames.getInstance().getLogger().warning("QualityArmory item is unavailable and will be skipped: " + itemName);
+            return;
+        }
+        registerItemLoot(new ItemLoot(item, minAmount, maxAmount));
     }
-    protected void registerQaItem(String itemName,int amount) throws IllegalArgumentException{
-        registerQaItem(itemName,amount,amount);
+
+    protected void registerQaItem(String itemName, int amount) {
+        registerQaItem(itemName, amount, amount);
     }
 }
 

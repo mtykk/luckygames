@@ -40,8 +40,9 @@ public class LuckyBlock implements Listener {
     private static final String TEXTURE_UNLUCKY = TEXTURE_NORMAL;
     private static final String TEXTURE_LUCKY = TEXTURE_NORMAL;
     private static ResolvableProfile TEXTURE_PROFILE_NORMAL, TEXTURE_PROFILE_UNLUCKY, TEXTURE_PROFILE_LUCKY;
-    private static final NamespacedKey LUCKY_BLOCK_TYPE_KEY = new NamespacedKey(LuckyGames.getInstance(),"lucky_block_type");
-    private static final NamespacedKey LUCKY_BLOCK_ATTRIBUTION_KEY = new NamespacedKey(LuckyGames.getInstance(),"lucky_block_attribution"); //Integer, representing which team(lane) the block belongs to, -1 means public.
+    private static final NamespacedKey LUCKY_BLOCK_TYPE_KEY = new NamespacedKey("luckygames","lucky_block_type");
+    private static final NamespacedKey LUCKY_BLOCK_ATTRIBUTION_KEY = new NamespacedKey("luckygames","lucky_block_attribution"); // Integer, representing which team(lane) the block belongs to, -1 means public.
+    private static final NamespacedKey LUCKY_BLOCK_DISPLAY_KEY = new NamespacedKey("luckygames", "lucky_block_display");
 
     public static final String[] luckyEventTypesString = {"unlucky","normal","lucky","challenge"};
     public static final String[] luckyBlockTypesString = {"unlucky-block", "normal-block", "lucky-block", "challenge-block"};
@@ -78,16 +79,23 @@ public class LuckyBlock implements Listener {
     private LiteralCommandNode<CommandSourceStack> luckyBlockBuiltCommand(){
         LiteralArgumentBuilder<CommandSourceStack> command = Commands.literal("luckyblock")
                 .then(Commands.literal("place")
-                        .then(Commands.argument("position", ArgumentTypes.blockPosition()).then(Commands.argument("lucky_type", new LuckyBlockTypeArgument()).then(Commands.argument("attribution",IntegerArgumentType.integer(-1,32))
+                        .then(Commands.argument("position", ArgumentTypes.blockPosition()).then(Commands.argument("lucky_type", new LuckyBlockTypeArgument()).then(Commands.argument("attribution",IntegerArgumentType.integer(-1, GamePlayer.MAX_TEAM_NUMBER))
                                 .requires(sender -> sender.getSender().hasPermission("luckygames.luckyblock.place"))
                                 .executes(ctx -> {
-                                    Entity executer = ctx.getSource().getExecutor();
+                                    Entity executor = ctx.getSource().getExecutor();
                                     final BlockPositionResolver blockPositionResolver = ctx.getArgument("position", BlockPositionResolver.class);
                                     final BlockPosition blockPosition = blockPositionResolver.resolve(ctx.getSource());
+                                    World world = executor == null
+                                            ? ctx.getSource().getLocation().getWorld()
+                                            : executor.getWorld();
+                                    if (world == null) {
+                                        ctx.getSource().getSender().sendMessage(Component.text("Could not determine a world for the lucky block"));
+                                        return 0;
+                                    }
 
                                     final LuckyBlockTypes luckyBlockType = ctx.getArgument("lucky_type", LuckyBlockTypes.class);
                                     final int attribution = IntegerArgumentType.getInteger(ctx,"attribution");
-                                    placeLuckyBlock(new Location(executer.getWorld(),blockPosition.x(),blockPosition.y(),blockPosition.z()),luckyBlockType,attribution);
+                                    placeLuckyBlock(new Location(world,blockPosition.x(),blockPosition.y(),blockPosition.z()),luckyBlockType,attribution);
                                     return Command.SINGLE_SUCCESS;
                                 })))
                         )
@@ -97,7 +105,14 @@ public class LuckyBlock implements Listener {
     }
 
 
-    public void placeLuckyBlock(Location location, LuckyBlockTypes type, int attribution){
+    public void placeLuckyBlock(Location location, LuckyBlockTypes type, int attribution) {
+        if (location == null || location.getWorld() == null) {
+            throw new IllegalArgumentException("Lucky block location must have a world");
+        }
+        if (type == null) throw new IllegalArgumentException("Lucky block type is required");
+        if (attribution < -1 || attribution > GamePlayer.MAX_TEAM_NUMBER) {
+            throw new IllegalArgumentException("Invalid lucky block attribution: " + attribution);
+        }
         Chunk chunk = location.getChunk();
         if (!chunk.isLoaded()){
             chunk.load();
@@ -120,7 +135,9 @@ public class LuckyBlock implements Listener {
                 block.setType(Material.YELLOW_STAINED_GLASS,false);
         }
 
+        removeLuckyBlockDisplays(location);
         ItemDisplay blockCoreDisplay = (ItemDisplay)world.spawnEntity(location.toCenterLocation(),EntityType.ITEM_DISPLAY);
+        blockCoreDisplay.getPersistentDataContainer().set(LUCKY_BLOCK_DISPLAY_KEY, PersistentDataType.BYTE, (byte) 1);
         ItemStack coreItemStack = null;
         switch (type){
             case UNLUCKY:
@@ -169,6 +186,16 @@ public class LuckyBlock implements Listener {
         placeLuckyBlock(location, type, -1);
     }
 
+    private void removeLuckyBlockDisplays(Location location) {
+        Collection<ItemDisplay> itemDisplays = location.getWorld().getNearbyEntitiesByType(
+                ItemDisplay.class, location.getBlock().getLocation().add(0.5, 0.5, 0.5), 0.5);
+        for (ItemDisplay itemDisplay : itemDisplays) {
+            if (itemDisplay.getPersistentDataContainer().has(LUCKY_BLOCK_DISPLAY_KEY, PersistentDataType.BYTE)) {
+                itemDisplay.remove();
+            }
+        }
+    }
+
     public boolean isLuckyBlock(Block block){
         Material blockType = block.getType();
         if(!(blockType.equals(Material.BLACK_STAINED_GLASS) ||
@@ -178,47 +205,59 @@ public class LuckyBlock implements Listener {
             return false;
         }
 
-        PersistentDataContainer pdc = new CustomBlockData(block,LuckyGames.getInstance());
-        return pdc.has(LUCKY_BLOCK_TYPE_KEY) && pdc.has(LUCKY_BLOCK_TYPE_KEY);
+        PersistentDataContainer pdc = new CustomBlockData(block, LuckyGames.getInstance());
+        return pdc.has(LUCKY_BLOCK_TYPE_KEY, PersistentDataType.INTEGER)
+                && pdc.has(LUCKY_BLOCK_ATTRIBUTION_KEY, PersistentDataType.INTEGER);
     }
 
     public LuckyEvents getLuckyEvents() {
         return luckyEvents;
     }
 
-    @EventHandler(ignoreCancelled = false,priority = EventPriority.HIGHEST)
-    protected void onBlockBreak(BlockBreakEvent event){
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    protected void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if(!isLuckyBlock(block)) return;
+        if (!isLuckyBlock(block)) return;
 
         Player player = event.getPlayer();
-        int playerTeam = GamePlayer.getPlayerTeam(player);
-
         PersistentDataContainer pdc = new CustomBlockData(block, LuckyGames.getInstance());
-        LuckyBlockTypes type = LuckyBlockTypes.values()[pdc.get(LUCKY_BLOCK_TYPE_KEY, PersistentDataType.INTEGER)];
-        int attribution = pdc.get(LUCKY_BLOCK_ATTRIBUTION_KEY,PersistentDataType.INTEGER);
-        event.setDropItems(false);
-        if(player.hasPermission("luckygames.luckyblock.useall") || attribution == -1 || playerTeam == attribution){
-            //This lucky block can be used by this player
-            event.setCancelled(false);
-            if(player.hasPermission("luckygames.luckyblock.useall") && attribution != -1 && playerTeam != attribution){
-                player.sendMessage(Component.translatable("luckyblock.warning.privilege_used"));
-            }
-        }else{
+        Integer typeIndex = pdc.get(LUCKY_BLOCK_TYPE_KEY, PersistentDataType.INTEGER);
+        Integer attribution = pdc.get(LUCKY_BLOCK_ATTRIBUTION_KEY, PersistentDataType.INTEGER);
+        if (typeIndex == null || typeIndex < 0 || typeIndex >= LuckyBlockTypes.values().length || attribution == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        boolean hasUseAll = player.hasPermission("luckygames.luckyblock.useall");
+        if (!hasUseAll && !player.hasPermission("luckygames.luckyblock.use")) {
+            event.setCancelled(true);
+            player.sendActionBar(Component.translatable("luckyblock.info.no_permission"));
+            return;
+        }
+
+        int playerTeam = GamePlayer.getPlayerTeam(player);
+        if (!hasUseAll && attribution != -1 && playerTeam != attribution) {
             player.sendActionBar(Component.translatable("luckyblock.info.not_owner"));
             event.setCancelled(true);
-            return ;
+            return;
         }
 
-        Collection<ItemDisplay> itemDisplays = block.getWorld().getNearbyEntitiesByType(ItemDisplay.class,block.getLocation().add(0.5,0.5,0.5),0.5);
-        for (ItemDisplay itemDisplay: itemDisplays){
-            itemDisplay.remove();
+        event.setDropItems(false);
+        if (hasUseAll && attribution != -1 && playerTeam != attribution) {
+            player.sendMessage(Component.translatable("luckyblock.warning.privilege_used"));
         }
-        LuckyGames.getInstance().getBlockProtector().unprotect(block);
 
-        Bukkit.getScheduler().runTaskLater(LuckyGames.getInstance(),task -> {
+        LuckyBlockTypes type = LuckyBlockTypes.values()[typeIndex];
+        Location blockLocation = block.getLocation().clone();
+        Bukkit.getScheduler().runTaskLater(LuckyGames.getInstance(), task -> {
+            // A later listener may still cancel a HIGHEST-priority break. Only consume the
+            // display/protection and run the event once the block has actually been removed.
+            if (isLuckyBlock(block)) return;
+            removeLuckyBlockDisplays(blockLocation);
+            LuckyGames.getInstance().getBlockProtector().unprotect(blockLocation);
+            if (!player.isConnected()) return;
             LuckyRunnable luckyEvent = luckyEvents.getRandomLuckyRunnable(type);
-            luckyEvent.run(player,block.getLocation());
-        },0);
+            luckyEvent.run(player, blockLocation);
+        }, 0);
     }
 }

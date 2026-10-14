@@ -29,6 +29,9 @@ public class PluginScoreboards implements Listener {
         this.playerOngoingChallenges = playerOngoingChallenges;
 
         Bukkit.getPluginManager().registerEvents(this,plugin);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            createBoard(player);
+        }
 
         Bukkit.getScheduler().runTaskTimer(plugin,task->{
             for(Map.Entry<UUID,FastBoard> board: boards.entrySet()){
@@ -89,12 +92,29 @@ public class PluginScoreboards implements Listener {
         player.sendPlayerListFooter(footer.build());
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e){
-        Player player = e.getPlayer();
+    private void createBoard(Player player) {
+        FastBoard previousBoard = boards.remove(player.getUniqueId());
+        if (previousBoard != null) previousBoard.delete();
         FastBoard board = new FastBoard(player);
         board.updateTitle(Component.text("LuckyGames", NamedTextColor.GOLD, TextDecoration.BOLD));
-        boards.put(player.getUniqueId(),board);
+        boards.put(player.getUniqueId(), board);
+    }
+
+    public void cleanup() {
+        for (Map.Entry<UUID, FastBoard> entry : boards.entrySet()) {
+            entry.getValue().delete();
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player != null) {
+                player.sendPlayerListFooter(Component.empty());
+                player.playerListName(Component.text(player.getName()));
+            }
+        }
+        boards.clear();
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent e){
+        createBoard(e.getPlayer());
     }
 
     @EventHandler

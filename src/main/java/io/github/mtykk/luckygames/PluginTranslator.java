@@ -25,4 +25,8 @@ public class PluginTranslator {
         store.defaultLocale(Locale.ROOT);
         GlobalTranslator.translator().addSource(store);
     }
+
+    void unregister() {
+        GlobalTranslator.translator().removeSource(store);
+    }
 }

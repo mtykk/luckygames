@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run tests and build plugin
+        shell: bash
+        run: |
+          set +e
+          ./gradlew --no-daemon --console=plain --stacktrace clean test shadowJar > gradle.log 2>&1
+          gradle_status=$?
+          cat gradle.log
+
+          if [ "$gradle_status" -ne 0 ]; then
+            python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          lines = Path("gradle.log").read_text(errors="replace").splitlines()
+          pattern = re.compile(r"(^FAILURE:|^\* What went wrong:|^Execution failed for task |^> Task .* FAILED$|\.java:\d+: error:|^Caused by:|^Could not (resolve|find|get|download)|^> Could not )")
+          relevant = [line.strip() for line in lines if pattern.search(line)]
+          tail = [line.strip() for line in lines[-35:] if line.strip()]
+          diagnostics = list(dict.fromkeys((relevant[-25:] + tail)))
+          message = " | ".join(diagnostics)[-12000:]
+          message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A").replace("::", "%3A%3A")
+          print(f"::error title=Gradle build diagnostics::{message or 'Gradle failed without diagnostic output'}")
+          PY
+          fi
+
+          exit "$gradle_status"

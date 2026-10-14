@@ -3,6 +3,7 @@ package io.github.mtykk.luckygames;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -21,16 +22,16 @@ public class PlayerOngoingChallenges {
             for(Entry<UUID,PlayerChallengeDesc> i:ongoingChallenges.entrySet()){
                 UUID playerUUID = i.getKey();
                 Player player = Bukkit.getPlayer(playerUUID);
+                if (player == null || !player.isConnected()) continue;
                 PlayerChallengeDesc playerChallengeDesc = i.getValue();
                 int ticksLeft = playerChallengeDesc.reduceTicksLeft();
-                if(ticksLeft <= 0){ //The challenge reaches a timeout
+                if (ticksLeft <= 0) { // The challenge reaches a timeout.
                     playerChallengeDesc.runTimeoutEvent();
+                    continue;
                 }
-                if(player != null && player.isConnected()){
-                    playerChallengeDesc.runPeriodicChecker();
-                }
+                playerChallengeDesc.runPeriodicChecker();
             }
-        },100,0);
+        }, 1, 1);
 
         Bukkit.getServer().getScheduler().runTaskTimer(LuckyGames.getInstance(),task->{
             if (ongoingChallenges.isEmpty()) return;
@@ -38,7 +39,7 @@ public class PlayerOngoingChallenges {
                 PlayerChallengeDesc playerChallengeDesc = i.getValue();
                 playerChallengeDesc.updateBossBar();
             }
-        },100,20);
+        }, 1, 20);
     }
 
     public Map<UUID, PlayerChallengeDesc> getOngoingChallenges() {
@@ -47,16 +48,21 @@ public class PlayerOngoingChallenges {
     public boolean hasOngoingChallenge(UUID uuid){
         return ongoingChallenges.containsKey(uuid);
     }
-    public boolean setOngoingChallenge(UUID uuid, PlayerChallengeDesc playerChallengeDesc){
-        if (this.hasOngoingChallenge(uuid)) return false;
-        ongoingChallenges.put(uuid,playerChallengeDesc);
+    public boolean setOngoingChallenge(UUID uuid, PlayerChallengeDesc playerChallengeDesc) {
+        return ongoingChallenges.putIfAbsent(uuid, playerChallengeDesc) == null;
+    }
+
+    public boolean removeOngoingChallenge(UUID uuid) {
+        PlayerChallengeDesc removed = ongoingChallenges.remove(uuid);
+        if (removed == null) return false;
+        removed.gracefullyClean();
         return true;
     }
-    public boolean removeOngoingChallenge(UUID uuid){
-        if (!this.hasOngoingChallenge(uuid)) return false;
-        ongoingChallenges.get(uuid).gracefullyClean();
-        ongoingChallenges.remove(uuid);
-        return true;
+
+    public void clear() {
+        for (UUID uuid : List.copyOf(ongoingChallenges.keySet())) {
+            removeOngoingChallenge(uuid);
+        }
     }
 
     public int count(){

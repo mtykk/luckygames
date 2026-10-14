@@ -55,9 +55,9 @@ public class BlockProtector implements Listener {
         unprotect(block.getLocation());
     }
 
-    @EventHandler(priority = EventPriority.HIGH,ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent e){
-        if(isProtected(e.getBlock())){
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent e) {
+        if (isProtected(e.getBlock()) && !LuckyGames.getInstance().getLuckyBlockInstance().isLuckyBlock(e.getBlock())) {
             e.setCancelled(true);
         }
     }

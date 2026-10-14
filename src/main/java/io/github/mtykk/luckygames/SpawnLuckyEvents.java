@@ -33,15 +33,15 @@ public abstract class SpawnLuckyEvents extends GenericLuckyEvents {
         return new Vector(PluginRandom.randomGenerator.nextFloat()-0.5f,0,PluginRandom.randomGenerator.nextFloat()-0.5f);
     }
 
-    protected void registerSimpleEntity(EntityType entityType,int minAmount,int maxAmount){
-        registerGenericEvent((player, blockLocation)->{
-            blockLocation.getWorld().spawnEntity(blockLocation.add(generateRandomSpawnOffset()),entityType,true);
-        },minAmount,maxAmount);
+    protected void registerSimpleEntity(EntityType entityType, int minAmount, int maxAmount) {
+        registerGenericEvent((player, blockLocation) -> {
+            Location spawnLocation = blockLocation.clone().add(generateRandomSpawnOffset());
+            spawnLocation.getWorld().spawnEntity(spawnLocation, entityType, true);
+        }, minAmount, maxAmount);
     }
-    protected void registerSimpleEntity(EntityType entityType,int amount){
-        registerGenericEvent((player, blockLocation)->{
-            blockLocation.getWorld().spawnEntity(blockLocation.add(generateRandomSpawnOffset()),entityType,true);
-        },amount,amount);
+
+    protected void registerSimpleEntity(EntityType entityType, int amount) {
+        registerSimpleEntity(entityType, amount, amount);
     }
     protected  void registerSimpleEntity(EntityType entityType){
         registerSimpleEntity(entityType,1);

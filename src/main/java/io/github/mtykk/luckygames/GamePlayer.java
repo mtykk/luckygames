@@ -8,6 +8,9 @@ import java.util.UUID;
  * Utility class, convenience only
  */
 public class GamePlayer {
+    public static final int MAX_TEAM_NUMBER = 32;
+    public static final int MAX_TEAM_COUNT = MAX_TEAM_NUMBER + 1;
+
     /**
      * Retrieves the team attribute of a player
      * @param player Player

@@ -17,16 +17,19 @@ public abstract class GenericLuckyEvents implements LuckyRunnable{
         return possibleEventsList.size();
     }
 
-    public void run(Player player, Location blockLocation){
-        ManagedLuckyRunnableSimple e = RandomPicker.randomPick(possibleEventsList);
-        int times = e.maxTimes == e.minTimes ? e.maxTimes : PluginRandom.randomGenerator.nextInt(e.maxTimes-e.minTimes+1)+e.minTimes;
-        if(e.onStart != null) e.onStart.run(player,blockLocation);
-        else classDefaultOnStart(player,blockLocation);
-        for(int i = 0;i < times;i++){
-            e.luckyRunnableSimple.run(player,blockLocation);
+    public void run(Player player, Location blockLocation) {
+        ManagedLuckyRunnableSimple event = RandomPicker.randomPick(possibleEventsList);
+        int times = event.maxTimes == event.minTimes
+                ? event.maxTimes
+                : PluginRandom.randomGenerator.nextInt(event.maxTimes - event.minTimes + 1) + event.minTimes;
+        Location eventLocation = blockLocation.clone();
+        if (event.onStart != null) event.onStart.run(player, eventLocation.clone());
+        else classDefaultOnStart(player, eventLocation.clone());
+        for (int i = 0; i < times; i++) {
+            event.luckyRunnableSimple.run(player, eventLocation.clone());
         }
-        if(e.onFinish != null) e.onFinish.run(player,blockLocation);
-        else classDefaultOnFinish(player,blockLocation);
+        if (event.onFinish != null) event.onFinish.run(player, eventLocation.clone());
+        else classDefaultOnFinish(player, eventLocation.clone());
     }
     protected void registerGenericEvent(LuckyRunnableSimple genericEvent,
                                         @Nullable LuckyRunnableSimple onStart,

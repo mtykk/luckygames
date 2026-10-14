@@ -7,7 +7,7 @@ public enum GamePhase {
      */
     WAITING,
     /**
-     * `start` command issued, preparing the game world
+     * `/luckygames run` command issued, preparing the game world
      * Players should be assigned a team
      * Players joining should be sent to the lobby, and no team will be assigned, the player will become a spectator
      */
